@@ -1,0 +1,396 @@
+{
+  "info" : {
+    "title" : "ELIXIR 3D Beacons API",
+    "version" : "1.0",
+    "description" : "OpenAPI 3 description of ELIXIR 3D-Beacons service. The service returns a list of homology models, PDB structures and the target sequence for a UniProtKB Accession."
+  },
+  "openapi" : "3.0.1",
+  "paths" : {
+    "/uniprot/{qualifier}.json" : {
+      "get" : {
+        "parameters" : [ {
+          "name" : "qualifier",
+          "description" : "UniProtKB accession number (AC) or entry name (ID)",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "provider",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "swissmodel", "genome3d", "pdb" ]
+          },
+          "explode" : true
+        }, {
+          "name" : "template",
+          "description" : "Template is 4 letter PDB code, or 4 letter code with assembly ID and chain for SMTL entries",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "range",
+          "description" : "Specify a UniProt sequence residue range",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "pattern" : "^[0-9]+-[0-9]+$"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Response includes query parameter, UniProt sequence summary and list of structures which may be empty",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/result"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/uniprot/{qualifier}.pdb" : {
+      "get" : {
+        "parameters" : [ {
+          "name" : "qualifier",
+          "description" : "UniProtKB accession number (AC) or entry name (ID)",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "sort",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "seqid", "seqsim" ]
+          }
+        }, {
+          "name" : "provider",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "swissmodel", "genome3d", "pdb" ]
+          },
+          "explode" : true
+        }, {
+          "name" : "template",
+          "description" : "Template is 4 letter PDB code, or 4 letter code with assembly ID and chain for SMTL entries",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "range",
+          "description" : "Specify a UniProt sequence residue range",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "pattern" : "^[0-9]+-[0-9]+$"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Single PDB format coordinates as attachment",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "string",
+                  "format" : "binary"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "If no model or structure exists for given UniProt qualifier"
+          }
+        }
+      }
+    },
+    "/sequence/{sequence}.json" : {
+      "get" : {
+        "parameters" : [ {
+          "name" : "sequence",
+          "description" : "Amino acid sequence",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "provider",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "swissmodel", "genome3d", "pdb" ]
+          },
+          "explode" : true
+        }, {
+          "name" : "template",
+          "description" : "Template is 4 letter PDB code, or 4 letter code with assembly ID and chain for SMTL entries",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Response includes query parameter, sequence summary and list of structures which may be empty",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/result"
+                }
+              }
+            }
+          },
+          "501" : {
+            "description" : "If endpoint is not implemented"
+          }
+        }
+      }
+    }
+  },
+  "servers" : [ {
+    "url" : "https://3dbeacons.org/{basePath}",
+    "description" : "3D Beacons server",
+    "variables" : {
+      "basePath" : {
+        "default" : "uniprot"
+      }
+    }
+  } ],
+  "components" : {
+    "schemas" : {
+      "result" : {
+        "type" : "object",
+        "properties" : {
+          "uniprot_entries" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "sequence_length" : {
+                  "type" : "integer"
+                },
+                "ac" : {
+                  "type" : "string"
+                },
+                "id" : {
+                  "type" : "string"
+                }
+              }
+            }
+          },
+          "structures" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "created" : {
+                  "type" : "string"
+                },
+                "identity" : {
+                  "type" : "number"
+                },
+                "similarity" : {
+                  "type" : "number"
+                },
+                "oligo-state" : {
+                  "type" : "string"
+                },
+                "coverage" : {
+                  "type" : "number"
+                },
+                "qmean_version" : {
+                  "type" : "string"
+                },
+                "qmean_avg_local_score" : {
+                  "type" : "number"
+                },
+                "coordinates" : {
+                  "type" : "string"
+                },
+                "pubmed_ids" : {
+                  "type" : "array",
+                  "items" : {
+                    "type" : "string"
+                  }
+                },
+                "in_complex_with" : {
+                  "type" : "array",
+                  "items" : {
+                    "type" : "object",
+                    "properties" : {
+                      "chain_id" : {
+                        "type" : "string"
+                      },
+                      "description" : {
+                        "type" : "string"
+                      },
+                      "interacting_PDB_residues" : {
+                        "type" : "array",
+                        "items" : {
+                          "type" : "object",
+                          "properties" : {
+                            "residue_label" : {
+                              "type" : "string"
+                            },
+                            "residue_index" : {
+                              "type" : "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "bound_ligands" : {
+                  "type" : "array",
+                  "items" : {
+                    "type" : "object",
+                    "properties" : {
+                      "chain_id" : {
+                        "type" : "string"
+                      },
+                      "description" : {
+                        "type" : "string"
+                      },
+                      "interacting_PDB_residues" : {
+                        "type" : "array",
+                        "items" : {
+                          "type" : "object",
+                          "properties" : {
+                            "residue_label" : {
+                              "type" : "string"
+                            },
+                            "residue_index" : {
+                              "type" : "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "chains" : {
+                  "type" : "array",
+                  "items" : {
+                    "type" : "object",
+                    "properties" : {
+                      "chain_id" : {
+                        "type" : "string"
+                      },
+                      "segments" : {
+                        "type" : "array",
+                        "items" : {
+                          "type" : "object",
+                          "properties" : {
+                            "template" : {
+                              "type" : "object",
+                              "properties" : {
+                                "last_updated" : {
+                                  "type" : "string"
+                                },
+                                "provider" : {
+                                  "type" : "string"
+                                },
+                                "experimental_method" : {
+                                  "type" : "string"
+                                },
+                                "resolution" : {
+                                  "type" : "number"
+                                },
+                                "preferred_assembly_id" : {
+                                  "type" : "number"
+                                }
+                              }
+                            },
+                            "seqres" : {
+                              "type" : "object",
+                              "properties" : {
+                                "aligned_sequence" : {
+                                  "type" : "string"
+                                },
+                                "description" : {
+                                  "type" : "string"
+                                },
+                                "from" : {
+                                  "type" : "integer"
+                                },
+                                "to" : {
+                                  "type" : "integer"
+                                }
+                              }
+                            },
+                            "uniprot" : {
+                              "type" : "object",
+                              "properties" : {
+                                "uniprot_md5" : {
+                                  "type" : "string"
+                                },
+                                "aligned_sequence" : {
+                                  "type" : "string"
+                                },
+                                "description" : {
+                                  "type" : "string"
+                                },
+                                "from" : {
+                                  "type" : "integer"
+                                },
+                                "to" : {
+                                  "type" : "integer"
+                                }
+                              }
+                            },
+                            "residues" : {
+                              "type" : "array",
+                              "items" : {
+                                "type" : "object",
+                                "properties" : {
+                                  "residue" : {
+                                    "type" : "object",
+                                    "properties" : {
+                                      "qmean" : {
+                                        "type" : "number"
+                                      },
+                                      "pdb_resnum" : {
+                                        "type" : "integer"
+                                      },
+                                      "uniprot_resnum" : {
+                                        "type" : "integer"
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
